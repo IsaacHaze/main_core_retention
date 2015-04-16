@@ -63,7 +63,7 @@ def p_cores(vertices, neighbors):
 
 def ngrams(lst, n=4):
     N = len(lst)
-    if N<n:
+    if N < n:
         return
         yield
 
@@ -72,7 +72,7 @@ def ngrams(lst, n=4):
 
 
 def add_edges(graph, lst):
-    N = len(lst)
+    # N = len(lst)
     for i, a in enumerate(lst):
         for j, b in enumerate(lst):
             if i == j:
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     print "graph({}):".format(len(graph))
     for a, counter in graph.items():
         for b, count in counter.items():
-            print "{}\t{}\t{}".format(a,b,count)
+            print "{}\t{}\t{}".format(a, b, count)
     print "====="
 
     cores = p_cores(graph.keys(), graph)
