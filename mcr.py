@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 from io import open
 from collections import defaultdict, Counter
@@ -24,13 +25,16 @@ def N(neighbors, C):
 
 
 def p_cores(vertices, neighbors):
-    """p-cores algorithm from Batagelj & Zaveršnik
+    """Generalized cores algorithm from Batagelj & Zaveršnik 2002
 
     Calculates the weighted k-cores decomposition. The weight function
-    p() is hard-coded to the edge weights in the graph.
+    p() is hard-coded to be the edge weights in the graph.
 
     References
     ==========
+    Batagelj, Vladimir, and Matjaž Zaveršnik. "Generalized cores."
+    arXiv preprint cs/0202039 (2002).
+
     Batagelj, Vladimir, and Matjaž Zaveršnik. "An O(m) algorithm for
     cores decomposition of networks." arXiv preprint cs/0310049
     (2003).
@@ -54,6 +58,7 @@ def p_cores(vertices, neighbors):
         C.remove(top)
 
         cores[top] = p[top]
+        # print "removing '{}' score {}".format(top, p[top])
         for v in N(neighbors[top], C):
             p[v] = max(p[top], weight(v, neighbors, C))
             min_heap[v] = p[v]
@@ -67,7 +72,7 @@ def ngrams(lst, n=4):
         return
         yield
 
-    for i in range(N-n):
+    for i in range(N-n+1):
         yield lst[i:i+n]
 
 
@@ -77,7 +82,7 @@ def add_edges(graph, lst):
         for j, b in enumerate(lst):
             if i == j:
                 continue
-            graph[a][b] = 1
+            graph[a][b] += 1
             # graph[a][b] += 1.0/(1+(i-j)**2)
             # graph[a][b] += 2.0**-(abs(i-j)-1)
 
@@ -86,15 +91,15 @@ def get_tokens(fname, stopwords):
     with open(fname, encoding='utf-8') as f:
         text = f.read()
 
-    # text = re.sub(r'\d', '9', text)
+    text = re.sub(r'\d', '9', text)
     # word_re = re.compile(r'(\p{L}[\p{L}_-]+|\p{P}+)')
-    word_re = re.compile(r'(\p{L}[\p{L}_-]+)')
+    word_re = re.compile(r'(\p{L}[\p{L}_-]*|\p{N}+)')
     tokens = word_re.findall(text)
 
     # retain = set(['NOUN', 'ADJ', 'ADV', 'PROPN'])
     retain = set(['NOUN', 'ADJ'])
-    pos_tagged = pos_tag(tokens)
-    print "pos_tags:", " ".join("{}_{}".format(*t) for t in pos_tagged)
+    # pos_tagged = pos_tag(tokens)
+    # print "pos_tags:", " ".join("{}_{}".format(*t) for t in pos_tagged)
     tokens = [tok for tok, tag in pos_tag(tokens)
               if map_tag('en-ptb', 'universal', tag) in retain]
 
@@ -130,6 +135,8 @@ if __name__ == '__main__':
     print "====="
 
     cores = p_cores(graph.keys(), graph)
+    top_k = max(cores.values())
+    main_core = [(node, val) for node, val in cores.items() if val >= top_k]
 
-    for stem, k_core in Counter(cores).most_common(50):
+    for stem, k_core in main_core:
         print u"{}\t{}".format(stem, k_core).encode('utf-8')
