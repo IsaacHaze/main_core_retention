@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+import os
 from io import open
 from collections import defaultdict, Counter
 from heap import heap
@@ -7,6 +8,13 @@ import regex as re
 from nltk import pos_tag
 from nltk.stem.porter import PorterStemmer
 from nltk.tag.mapping import map_tag
+
+
+def load_stopwords():
+    path = os.path.join(os.path.dirname(__file__), 'english_stopwords.txt')
+    with open(path, encoding='utf-8') as f:
+        stopwords = set(f.read().split())
+    return stopwords
 
 
 def weight(vertex, neighbors, C):
@@ -58,7 +66,7 @@ def p_cores(vertices, neighbors):
         C.remove(top)
 
         cores[top] = p[top]
-        # print "removing '{}' score {}".format(top, p[top])
+        # prints "removing '{}' score {}".format(top, p[top])
         for v in N(neighbors[top], C):
             p[v] = max(p[top], weight(v, neighbors, C))
             min_heap[v] = p[v]
@@ -109,9 +117,9 @@ def get_tokens(fname, stopwords):
     stemmer = PorterStemmer()
     tokens = [stemmer.stem(tok) for tok in tokens]
 
-    print "====="
-    print "tokens:", " ".join(tokens)
-    print "====="
+    # print "====="
+    # print "tokens:", " ".join(tokens)
+    # print "====="
 
     return tokens
 
@@ -119,8 +127,7 @@ def get_tokens(fname, stopwords):
 if __name__ == '__main__':
     fname = sys.argv[1]
 
-    with open('english_stopwords.txt', encoding='utf-8') as f:
-        stopwords = set(f.read().split())
+    stopwords = load_stopwords()
     toks = get_tokens(fname, stopwords)
     graph = defaultdict(Counter)
 
@@ -128,15 +135,16 @@ if __name__ == '__main__':
         # print " ".join(ngram)
         add_edges(graph, ngram)
 
-    print "graph({}):".format(len(graph))
-    for a, counter in graph.items():
-        for b, count in counter.items():
-            print "{}\t{}\t{}".format(a, b, count)
-    print "====="
+    # print "graph({}):".format(len(graph))
+    # for a, counter in graph.items():
+    #     for b, count in counter.items():
+    #         print "{}\t{}\t{}".format(a, b, count)
+    # print "====="
 
     cores = p_cores(graph.keys(), graph)
     top_k = max(cores.values())
     main_core = [(node, val) for node, val in cores.items() if val >= top_k]
 
     for stem, k_core in main_core:
-        print u"{}\t{}".format(stem, k_core).encode('utf-8')
+        # print u"{}\t{}".format(stem, k_core).encode('utf-8')
+        print u"{}".format(stem, k_core).encode('utf-8')
